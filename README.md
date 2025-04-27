@@ -1,10 +1,10 @@
-# beckyneufeld.github.io
+# Becky Neufeld
 
 # Professional Profile
 Hi! Here you can find example code I have written for different projects :)
 
 # About Me
-I have my Phd in psychology, where my focus was on using quantitative methods to tackle complex social psychological problems, for example STEM PhD student attrition. STEM PhD students face around 50% attrition, with this percentage often being higher for traditionally underrepresented groups. Additionally, the time to complete a PhD is increasing, and many students report feeling inadequately supported in pursuing non-academic careers. My journey through graduate school has been driven by a desire to conduct meaningful research that enhances student experiences and I am fortunate to be part of a lab dedicated to this important work in STEM.
+I have my PhD in psychology, where my focus was on using quantitative methods to tackle complex social psychological problems, for example STEM PhD student attrition. STEM PhD students face around 50% attrition, with this percentage often being higher for traditionally underrepresented groups. Additionally, the time to complete a PhD is increasing, and many students report feeling inadequately supported in pursuing non-academic careers. My journey through graduate school has been driven by a desire to conduct meaningful research that enhances student experiences and I am fortunate to be part of a lab dedicated to this important work in STEM.
 
 # Early Research Experience
 In my first project, I contributed to a thematic analysis of graduating PhD student interviews (publication here: 10.1615/JWomenMinorScienEng.2024048003). This qualitative analysis revealed the challenge of conveying the diversity of experiences— both positive and negative— given the deeply personal nature of each interview. This experience, along with the expierences of friends, family, and peers, underscored two key points for me:
