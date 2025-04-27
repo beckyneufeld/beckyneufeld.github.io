@@ -1,3 +1,9 @@
+---
+layout: page
+title: "Script to Make Composites Example"
+permalink: /Composites-Example/
+---
+
 Script to Make Composites Example
 ================
 Becky Neufeld
