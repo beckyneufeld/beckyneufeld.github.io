@@ -1,0 +1,191 @@
+---
+title: "Script to Make Composites Example"
+author: "Becky Neufeld"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This R script is an example of R code that I've used on longitudinal survey data to automate the process of making composite variables from item-level data.  
+
+Composite variables are means or sums of different items from the survey. For example, the composite variable "Rejection Sensitivity" is the mean of the three survey items: (1) "In your graduate program, to what extent do you expect that people might expect less of you because of your background (race, gender, and other social identities)?"; (2) "In your graduate program, to what extent do you expect that others will treat you differently because of your background (race, gender, and other social identities)?"; and (3) "In your graduate program, to what extent do you expect to be treated fairly?".
+
+The script is used to automate the process of making composite variables by setting up the desired composite logic, selecting patterns in the item names and putting the relevant items together to form the composites. 
+
+## Load relevant packages
+```{r,results = 'hide', warning=FALSE, message=FALSE}
+library(tidyverse)
+library(reshape)
+library(haven)
+library(readr)
+library(random)
+```
+
+## Function used to generate fake data 
+The original survey data is confidential, so these functions were run offline on that dataset to make a fake dataset with similar structure for this example script.
+ 
+```{r, eval=F}
+generate_random_strings <- function(n, length = 10) {
+   random_string <- function() {
+     paste0(sample(c(0:9, letters, LETTERS), length, replace = TRUE), collapse = "")
+   }
+   replicate(n, random_string())
+ }
+ 
+ dataset[] <- lapply(dataset, function(column) {
+   if (is.numeric(column)) {
+     return(runif(length(column), min = 0, max = 100))  # Replace with random numbers
+   } else if (is.character(column)) {
+     return(generate_random_strings(length(column)))  # Replace with random strings
+   } else if (is.factor(column)) {
+     return(sample(levels(column), length(column), replace = TRUE))  # Replace with random factor levels
+   } else if (inherits(column, "Date")) {
+     return(as.Date(sample(16000:19000, length(column), replace = TRUE), origin = "1970-01-01"))  # Replace with random dates
+   } else {
+     return(column)
+   }
+ })
+```
+
+# Read in Fake Data 
+To run this script, the "fake" data must be downloaded from github and added to the working directory.
+```{r}
+
+GraSP_Long <- read_csv("Grasp_Long_Github_Fake.csv")
+
+```
+
+# Functions to Make the Composites
+
+create_mean_variables creates composite variables that are means of the items from "dataset" that contain "patterns" strings in their names.
+```{r}
+create_mean_variables <- function(patterns, dataset) {
+  for (pattern in patterns) {
+    selected_columns <- grepl(paste0("^", pattern), colnames(dataset), ignore.case = TRUE)
+    selected_variables <- dataset[, selected_columns, drop = FALSE]
+    mean_variable <- paste0(pattern, "_mean")
+    dataset[[mean_variable]] <- apply(selected_variables, 1, function(x) mean(as.numeric(x), na.rm = TRUE))
+    
+    included_variables <- colnames(selected_variables)
+    message(paste0("Mean calculation for pattern '", pattern, "' includes the following variables: ", paste(included_variables, collapse = ", ")))
+  }
+  
+  return(dataset)
+}
+```
+
+create_sum_variables creates composite variables that are sums of the items from "dataset" that contain "patterns" strings in their names.
+```{r}
+create_sum_variables <- function(patterns, dataset) {
+  for (pattern in patterns) {
+    selected_columns <- grepl(paste0("^", pattern), colnames(dataset), ignore.case = TRUE)
+    selected_variables <- dataset[, selected_columns, drop = FALSE]
+    sum_variable <- paste0(pattern, "_sum")
+    dataset[[sum_variable]] <- apply(selected_variables, 1, function(x) sum(as.numeric(x), na.rm = TRUE))
+    
+    included_variables <- colnames(selected_variables)
+    message(paste0("Mean calculation for pattern '", pattern, "' includes the following variables: ", paste(included_variables, collapse = ", ")))
+  }
+  
+  return(dataset)
+}
+```
+
+check_pattern_values checks the values of the survey items and displays relevant survey issues.
+```{r}
+check_pattern_values <- function(patterns, dataset, threshold) {
+  variables_exceeding_threshold <- character()  # Store variables that exceed the threshold
+  
+  for (pattern in patterns) {
+    selected_columns <- grepl(pattern, colnames(dataset), ignore.case = TRUE)
+    selected_variables <- dataset[, selected_columns, drop = FALSE]
+    
+    exceeding_variables <- colnames(selected_variables)[sapply(selected_variables, function(x) any(as.numeric(x) > threshold, na.rm = TRUE))]
+    variables_exceeding_threshold <- c(variables_exceeding_threshold, exceeding_variables)
+  }
+  
+  if (length(variables_exceeding_threshold) > 0) {
+    print("Variables exceeding the threshold of 7:")
+    print(variables_exceeding_threshold)
+  } else {
+    print("No variables exceed the threshold of 7.")
+  }
+}
+```
+
+## Write out what patterns identify the composites
+
+Here, we entered manually the patterns that defined each composite, for example "DeptDiv" for the composite of Dept_Div1, Dept_Div2, and Dept_Div3.  Automated pattern matching was not used due to inconsistencies in the variable naming, e.g., some variables have _1, others have .1, and some don't have any delimiters before the number.
+```{r}
+unique_variables <- unique(names(GraSP_Long)[-1])
+
+patterns <- c("DeptDiv", "DeptComp", "GA_comp", "GA_agency", "GA_relation", "RS", "DeptFit", "Phd_Goals_int_comm", "Phd_Goals_int_agen", "Phd_Goals_ext_comm", "Phd_Goals_ext_agen", "SEff", "Eng",  "AffEng", "BehEng", "Belong", "scienceID", "AcaID", "stemID", "Commit_Grad", "Commit_field", "SWB", "FGP_RoleModel", 
+              
+              "FGP_Trust", "BFGP_Cares", "CFGP_Cares8", "AFGP_Freq", "BFGP_Freq", "AFGP_TradSup_AcaChal", "BFGP_TradSup_AcaChal", "AFGP_TradSup_Res", "BFGP_TradSup_Res", "AFGP_TradSup_Life", "BFGP_TradSup_Life",
+              
+              "F_Trust", "F_Cares", "BF_Freq", "AF_Freq", "CF_Freq", "AF_TradSup_AcaChal", "BF_TradSup_AcaChal","AF_TradSup_Res", "BF_TradSup_Res", "AF_TradSup_Life", "BF_TradSup_Life",
+              
+              
+               "P_RoleModel", "P_normal", "P_Trust", "AP_Freq", "BP_Freq", "CP_Freq", "AP_TradSup_AcaChal", "BP_TradSup_AcaChal",
+               
+          "P_resp", "DeptClimate", "Microagg", "Cope_Denial", "Cope_Diseng", "Cope_Vent", "Cope_Reframe", "Cope_Emosup", "Cope_Instrsup", "Cope_Selfblame", "Cope_Subuse", "Cope_Plan", "Cope_Active", "Cope_Distract",
+          
+          "esteem", "WLBalance", "SF_Cares", "FGP_feedback", "F_RoleModel", "F_feedback"
+          
+         )
+```
+
+## Fix a data entry mistake that was made where not all decline to state answers were coded as "NA"
+
+Check for value Issues (these scales should not have 8 in them).
+```{r}
+threshold <- 7
+check_pattern_values(patterns, GraSP_Long, threshold)
+```
+
+Specify the variables to be modified (8 needs to change to NA).
+```{r}
+variables_to_modify <- c(
+  "AFGP_TradSup_AcaChal_1", "AFGP_TradSup_AcaChal_2", "AFGP_TradSup_AcaChal_3",
+  "BFGP_TradSup_AcaChal_6", "BFGP_TradSup_AcaChal_7", "BFGP_TradSup_AcaChal_10",
+  "AFGP_TradSup_Res_1", "AFGP_TradSup_Res_2", "AFGP_TradSup_Res_3",
+  "BFGP_TradSup_Res_6", "BFGP_TradSup_Res_7", "BFGP_TradSup_Res_9",
+  "AFGP_TradSup_Life_1", "AFGP_TradSup_Life_2", "AFGP_TradSup_Life_4",
+  "BFGP_TradSup_Life_7", "BFGP_TradSup_Life_9",
+  "AF_TradSup_AcaChal_1", "AF_TradSup_AcaChal_2", "AF_TradSup_AcaChal_3",
+  "BF_TradSup_AcaChal_6", "BF_TradSup_AcaChal_7", "BF_TradSup_AcaChal_9",
+  "AF_TradSup_Res_1", "AF_TradSup_Res_2", "AF_TradSup_Res_3",
+  "BF_TradSup_Res_6", "BF_TradSup_Res_7",
+  "AF_TradSup_Life_2", "AF_TradSup_Life_3",
+  "BF_TradSup_Life_6", "BF_TradSup_Life_7", "BF_TradSup_Life_9",
+  "AP_TradSup_AcaChal1_1", "AP_TradSup_AcaChal1_2",
+  "BP_TradSup_AcaChal1_3", "BP_TradSup_AcaChal1_4", "BP_TradSup_AcaChal1_5",
+  "BP_TradSup_AcaChal1_6", "DeptClimate_1", "DeptClimate_2", "DeptClimate_3",
+  "DeptClimate_4", "DeptClimate_5", "DeptClimate_6", "DeptClimate_7",
+  "DeptClimate_9", "DeptClimate_10", "Microagg_3", "Microagg_5",
+  "Microagg_6", "Microagg_9"
+)
+```
+Specify the variables to be modified (8 needs to change to NA).
+```{r}
+for (var in variables_to_modify) {
+  GraSP_Long[[var]][GraSP_Long[[var]] == 8] <- NA
+}
+
+```
+
+# Run the functions to make the composite variables
+```{r}
+
+GraSP_Composites <- create_mean_variables(patterns, GraSP_Long)
+
+patterns <- c("Stress")
+GraSP_Composites_Long <- create_sum_variables(patterns, GraSP_Composites)
+```
+
+
+
