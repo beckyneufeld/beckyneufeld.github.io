@@ -1,10 +1,13 @@
 ---
+layout: page              # keep this for Jekyll routing
 title: "Script to Make Composites Example"
 author: "Becky Neufeld"
 date: "`r Sys.Date()`"
 output:
-  rmarkdown::github_document
+  html_document:          # ← change from md_document
+    self_contained: true  # puts highlight.js + CSS inline
 ---
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)

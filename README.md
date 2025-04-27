@@ -23,7 +23,7 @@ I aim to contribute my data analytic skills to a helping stakeholders reach data
 
 How I Can Provide Value:
 - Efficient Data Cleaning and Preparation: Save teams time with my expertise in data cleaning and preparation.
-	- See the following [R Markdown script](docs/Composites-Examples.md) for an example of a composite variable script 
+	- See the following [R Markdown script](docs/Composites-Examples.html) for an example of a composite variable script 
 - Appropriate Model Application: Apply models that directly answer the team's questions, leveraging my diverse skills to choose models with appropriate assumptions based on the goals.
 - Clear and Quick Presentation: Present results clearly and quickly using my data visualization skills.
 
